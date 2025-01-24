@@ -15,16 +15,15 @@ followed by choosing the option that are needed to create the project.
 create a free mongoDB account.
 
 # install the Prisma adapter for mongoDB
-        ```
             npm install @prisma/client @auth/prisma-adapter
             npm install prisma --save-dev
-        ```
+        
 ## set the enviroment variable
-    ```
+    
         DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=SCHEMA
-    ```
+    
 ## configure the Prisma ORM
-    ```
+    
         import { PrismaClient } from '@prisma/client'
 
         const prismaClientSingleton = () => {
@@ -40,7 +39,7 @@ create a free mongoDB account.
         export default prisma
 
         if (process.env.NODE_ENV !== 'production') globalThis.prismaGlobal = prisma
-    ```
+    
 
 ## follow the steps here:
 [NextAuth prisma Adapter configuration](https://authjs.dev/getting-started/adapters/prisma?framework=next-js)
