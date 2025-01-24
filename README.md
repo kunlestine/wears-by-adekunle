@@ -15,10 +15,8 @@ followed by choosing the option that are needed to create the project.
 create a free mongoDB account.
 
 # install the Prisma adapter for mongoDB
-    """ 
         npm install @prisma/client @auth/prisma-adapter
         npm install prisma --save-dev
-    """
 ## set the enviroment variable
     DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=SCHEMA
 ## configure the Prisma ORM
@@ -40,103 +38,9 @@ create a free mongoDB account.
         if (process.env.NODE_ENV !== 'production') globalThis.prismaGlobal = prisma
     """
 
-## create an auth.ts file at the root of the folder
-    """
-        import NextAuth from "next-auth"
-        import { PrismaAdapter } from "@auth/prisma-adapter"
-        import { prisma } from "@/prisma"
-        
-        export const { handlers, auth, signIn, signOut } = NextAuth({
-        adapter: PrismaAdapter(prisma),
-        providers: [],
-        })
-    """
-# Apply Schema
-create a schema file ay prisma/schema.prisma with the MongoDB model.
-
-"""
-    datasource db {
-  provider = "mongodb"
-  url      = env("DATABASE_URL")
-}
- 
-generator client {
-  provider = "prisma-client-js"
-}
- 
-model User {
-  id            String          @id @default(auto()) @map("_id") @db.ObjectId
-  name          String?
-  email         String?         @unique
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
-  // Optional for WebAuthn support
-  Authenticator Authenticator[]
- 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
- 
-model Account {
-  id                String  @id @default(auto()) @map("_id") @db.ObjectId
-  userId            String  @db.ObjectId
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String? @db.String
-  access_token      String? @db.String
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.String
-  session_state     String?
- 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
- 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
- 
-  @@unique([provider, providerAccountId])
-}
- 
-model Session {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  sessionToken String   @unique
-  userId       String   @db.ObjectId
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
- 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
- 
-model VerificationToken {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  identifier String
-  token      String
-  expires    DateTime
- 
-  @@unique([identifier, token])
-}
- 
-// Optional for WebAuthn support
-model Authenticator {
-  credentialID         String  @id @map("_id")
-  userId               String  @db.ObjectId
-  providerAccountId    String
-  credentialPublicKey  String
-  counter              Int
-  credentialDeviceType String
-  credentialBackedUp   Boolean
-  transports           String?
- 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
- 
-  @@unique([userId, credentialID])
-}
-
+## follow the steps here:
+[NextAuth prisma Adapter configuration](https://authjs.dev/getting-started/adapters/prisma?framework=next-js)
+    
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
