@@ -10,6 +10,7 @@ followed by choosing the option that are needed to create the project.
 - zod
 - Prisma
 - MongoDB
+- Jose
 
 # create a mongoDB database
 create a free mongoDB account.
