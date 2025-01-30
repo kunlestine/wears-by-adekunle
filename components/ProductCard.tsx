@@ -30,7 +30,7 @@ function ProductCard({ product }: ProductCardProps) {
                 <h2 className="card-title">{product.name}</h2>
                 {isNew && <div className="badge badge-secondary">NEW</div>}
                 <p>{product.description}</p>
-                <PriceTag price={product.price} className="my-2" />
+                <PriceTag price={product.price} className="my-2 " />
             </div>
         </Link>
     )
