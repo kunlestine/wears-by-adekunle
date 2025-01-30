@@ -2,68 +2,35 @@ import NextAuth from 'next-auth'
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import prisma from '@/lib/db/prisma'
 import { Adapter } from 'next-auth/adapters'
-import Google from 'next-auth/providers/google'
-import type { Provider } from 'next-auth/providers'
-import Credentials from 'next-auth/providers/credentials'
-import { env } from '@/lib/env'
-import { signInSchema } from './lib/definitions'
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const bcrypt = require('bcryptjs')
+import authConfig from "./auth.config"
+import { randomBytes } from 'crypto'
 
-const providers: Provider[] = [
-    Credentials({
-        credentials: {
-            email: { label: 'Email', type: 'text' },
-            password: { label: 'Password', type: 'password' },
-        },
-        authorize: async credentials => {
-            if (!credentials?.email || !credentials?.password) {
-                throw new Error('Email and password are required')
-            }
+const maxAge = 30 * 24 * 60 * 60; // 30 days
+const updateAge = 24 * 60 * 60 // 1 day
 
-            const { email, password } =
-                await signInSchema.parseAsync(credentials)
-
-            // Verify user credentials
-            const user = await prisma.user.findUnique({
-                where: {
-                    email,
-                },
-            })
-            if (!user || !user?.hashedPassword) {
-                throw new Error('Invalid credentials')
-            }
-
-            const isCorrectPassword = await bcrypt.compareSync(
-                password,
-                user.hashedPassword,
-            )
-            if (!isCorrectPassword) {
-                throw new Error('Invalid Credentilas')
-            }
-            return user
-        },
-    }),
-    Google({
-        clientId: env.GOOGLE_CLIENT_ID,
-        clientSecret: env.GOOGLE_CLIENT_SECRET,
-    }),
-]
-
-export const providerMap = providers
-    .map(provider => {
-        if (typeof provider === 'function') {
-            const providerData = provider()
-            return { id: providerData.id, name: providerData.name }
-        } else {
-            return { id: provider.id, name: provider.name }
+export async function createSession (userId: string) {
+    // expiration age
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    // Generate a custome session token
+    const sessionToken = randomBytes(32).toString('hex')
+    // Store it in the database
+    return await prisma.session.create({
+        data: {
+                    userId,
+                    expires: expiresAt,
+                    sessionToken
         }
     })
-    .filter(provider => provider.id !== 'credentials')
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
     adapter: PrismaAdapter(prisma) as Adapter,
-    providers,
+    session: { 
+        maxAge: maxAge, // 30 days
+        updateAge: updateAge, // 1 day
+        strategy: "database"
+    },
+    ...authConfig,
     pages: {
         signIn: '/signin',
         error: '/error',
@@ -73,6 +40,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             session.user.id = user.id
             return session
         },
-    },
+    },        
     debug: false,
 })
